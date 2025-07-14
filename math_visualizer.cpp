@@ -442,27 +442,50 @@ public:
     void plotFunc(const std::string& eq, sf::Color col) {
         sf::VertexArray curve(sf::LineStrip);
         
-        int pts = std::min(w, 800);
+        int pts = std::min(w * 2, 1600);
         double step = (xMax - xMin) / pts;
+        
+        double lastY = 0;
+        bool lastValid = false;
         
         for (double x = xMin; x <= xMax; x += step) {
             try {
                 double y = parser.eval(eq, x);
                 
-                if (!std::isnan(y) && !std::isinf(y) && y >= yMin && y <= yMax) {
-                    sf::Vector2f pt = toScreen(x, y);
-                    if (pt.x >= 0 && pt.x <= w && pt.y >= 0 && pt.y <= h) {
-                        curve.append(sf::Vertex(pt, col));
+                if (!std::isnan(y) && !std::isinf(y)) {
+                    if (y >= yMin && y <= yMax) {
+                        sf::Vector2f pt = toScreen(x, y);
+                        if (pt.x >= 0 && pt.x <= w && pt.y >= 0 && pt.y <= h) {
+                            if (lastValid && fabs(y - lastY) > (yMax - yMin) * 0.1) {
+                                if (curve.getVertexCount() > 1) {
+                                    win.draw(curve);
+                                }
+                                curve.clear();
+                            }
+                            curve.append(sf::Vertex(pt, col));
+                            lastY = y;
+                            lastValid = true;
+                        }
+                    } else {
+                        if (curve.getVertexCount() > 1) {
+                            win.draw(curve);
+                        }
+                        curve.clear();
+                        lastValid = false;
                     }
-                } else if (curve.getVertexCount() > 1) {
-                    win.draw(curve);
+                } else {
+                    if (curve.getVertexCount() > 1) {
+                        win.draw(curve);
+                    }
                     curve.clear();
+                    lastValid = false;
                 }
             } catch (...) {
                 if (curve.getVertexCount() > 1) {
                     win.draw(curve);
-                    curve.clear();
                 }
+                curve.clear();
+                lastValid = false;
             }
         }
         
@@ -472,7 +495,7 @@ public:
     }
     
     void plotImplicit(const std::string& eq, sf::Color col) {
-        int res = std::min(100, w / 4);
+        int res = std::min(150, w / 3);
         double sx = (xMax - xMin) / res;
         double sy = (yMax - yMin) / res;
         
@@ -486,7 +509,7 @@ public:
                 try {
                     double val = parser.eval(eq, x, y);
                     
-                    if (fabs(val) < 0.1) {
+                    if (fabs(val) < 0.5) {
                         sf::Vector2f pt = toScreen(x, y);
                         if (pt.x >= 0 && pt.x <= w && pt.y >= 0 && pt.y <= h) {
                             pts.append(sf::Vertex(pt, col));
@@ -542,8 +565,8 @@ public:
             input.setFont(*plot.getFont());
         }
         
-        plot.add("x^2");
         plot.add("sin(x)");
+        plot.add("x^2 + y^2 - 25");
     }
     
     void events() {
