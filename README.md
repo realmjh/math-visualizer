@@ -1,5 +1,5 @@
 # math-visualizer
-I wrote this piece of software in C++ so that I coudl visualize complex math equations more easily. This is by far the worst project I've done yet. 
+I wrote this piece of software in C++ so that I could visualize complex math equations more easily. This is by far the worst project I've done yet. 
 
 Seriously, designing your own encryption is somehow more straightforward. Some of the functionality is still busted asf. I'll fix it as time goes on. 
 
